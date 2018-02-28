@@ -59,6 +59,16 @@ RUN yum -y install \
 # Remove the default configuration files.
 && rm /etc/php.ini /etc/php-fpm.conf /etc/php-fpm.d/www.conf
 
+# Set nginx right
+RUN chown -R root:nginx /var/lib/php
+
+# Set the locale
+RUN localedef -i fr_FR -f UTF-8 fr_FR.UTF-8
+#RUN locale-gen en_US.UTF-8
+ENV LANG fr_FR.UTF-8
+ENV LANGUAGE fr_FR:fr
+ENV LC_ALL fr_FR.UTF-8
+
 # Add custom NGINX configs:
 #RUN sed -i '1i\daemon off;\' /etc/nginx/nginx.conf
 COPY ./default.conf /etc/nginx/conf.d/default.conf
@@ -201,13 +211,17 @@ VOLUME etc/mysql/docker-default.d
 # Clean up YUM when done.
 RUN yum clean all
 
-WORKDIR /opt
+WORKDIR /opt/playSMS-1.4/
 #COPY ./start-lemp.sh /opt/
+COPY install-playsms-cli.sh /opt/playSMS-1.4/
+COPY install.conf /opt/playSMS-1.4/install.conf
 COPY supervisord.conf /etc/supervisord.conf
+RUN chmod +x ./install-playsms-cli.sh
+#RUN ./install-playsms-cli.sh
 
 EXPOSE 80 9000 3306
 CMD ["/docker-entrypoint.sh"]
 
 # Exmple command
-# docker build -t element/centos-lemp-2 .
-# docker run -d -p 3306:3306 -p 80:80 -v /var/www/code/:/var/www/html:ro -e MYSQL_ROOT_PASSWORD=element --name centos-lemp-2 element/centos-lemp:2
+# docker build -t element/centos-playsms:1 .
+# docker run -d -p 2081:80 -p 8106:3306 -v /var/www/playsms/:/var/www/html/ -e MYSQL_ROOT_PASSWORD=element --name playsms element/centos-playsms:1
